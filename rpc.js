@@ -10,20 +10,110 @@ module.exports = function(app, key) {
 	    method:'POST'//Optional. POST by default
 	};
 
-
-	app.get('/getBalance', (req, res) => {
-		const client = new RpcClient(config);
-		client.call({
-		    method:'getbalance',//Mandatory
-		    params:[],//Will be [] by default
-		    id:'rpcExample',//Optional. By default it's a random id
-		    jsonrpc:'2.0'//Optional. By default it's 2.0
-		},(err, res)=>{
-		    if(err){	       
-		       console.error("err:"+err);
-		    }
-		    console.log('Data:', res);
+	function rpcCall(method, ...arg) {		
+		return new Promise((resolve, reject) => {
+			const client = new RpcClient(config);
+			client.call({
+			    method,//Mandatory
+			    params: arg,//Will be [] by default
+			    id:'rpcExample',//Optional. By default it's a random id
+			    jsonrpc:'2.0'//Optional. By default it's 2.0
+			},(err, data)=>{
+			    if(err){	       
+			       reject(err);
+			    }		    
+			    resolve(data);
+			});
 		});
-	});	
+		
+	}
+
+	app.get('/getblockchaininfo', (req, res) => {
+		rpcCall('getblockchaininfo').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.get('/getnetworkinfo', (req, res) => {
+		rpcCall('getnetworkinfo').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.get('/getwalletinfo', (req, res) => {
+		rpcCall('getwalletinfo').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+
+	app.get('/getbalance', (req, res) => {
+		rpcCall('getbalance').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.get('/listaccounts', (req, res) => {
+		rpcCall('listaccounts').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.get('/listreceivedbyaccount', (req, res) => {
+		rpcCall('listreceivedbyaccount').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.get('/listreceivedbyaddress', (req, res) => {
+		rpcCall('listreceivedbyaddress').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.get('/listtransactions', (req, res) => {
+		rpcCall('listtransactions').then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.get('/gettransaction/:txid', (req, res) => {
+		const txid = req.params.txid;		
+		if(!txid){
+			res.json({"flag": 0});
+			return;			
+		}		
+
+		rpcCall('gettransaction', txid).then((result) => {
+			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
 
 }
