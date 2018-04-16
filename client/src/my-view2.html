@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="my-view2">
@@ -19,13 +20,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         padding: 10px;
       }
+
+      .balance {
+        font-weight: 600;
+      }
     </style>
 
-    <div class="card">
-      <div class="circle">2</div>
-      <h1>View Two</h1>
-      <p>Ea duis bonorum nec, falli paulo aliquid ei eum.</p>
-      <p>Id nam odio natum malorum, tibique copiosae expetenda mel ea.Detracto suavitate repudiandae no eum. Id adhuc minim soluta nam.Id nam odio natum malorum, tibique copiosae expetenda mel ea.</p>
+    <iron-ajax id="ajaxCall" auto url="/getwalletinfo" handle-as="json" last-response="{{data}}"></iron-ajax>
+
+    <div class="card">      
+      <h2>Wallet info</h2>
+      
+      <div class="info balance">
+        Balance : [[data.data.result.balance]] BTC
+      </div>
+
+      <div class="info">
+        Walletname : [[data.data.result.walletname]]
+      </div>
+
+      <div class="info">
+        WalletVersion : [[data.data.result.walletversion]]
+      </div>
+
+      <div class="info">
+        Unconfirmed balance : [[data.data.result.unconfirmed_balance]]
+      </div>
+
+      <div class="info">
+        immature_balance : [[data.data.result.immature_balance]]
+      </div>
+
+      <div class="info">
+        txcount : [[data.data.result.txcount]]
+      </div>
+
+      <div class="info">
+        paytxfee : [[data.data.result.paytxfee]]
+      </div>
+
     </div>
   </template>
 
