@@ -1,0 +1,211 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/vaadin-grid/all-imports.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="shared-gridstyles.html">
+<link rel="import" href="my-transaction-dlog.html">
+
+<dom-module id="my-view1">
+  <template>
+    <style include="shared-gridstyles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <iron-ajax id="ajaxCall" auto url="/listtransactions" handle-as="json" last-response="{{data}}"></iron-ajax>
+    
+    <h2>Recent Transaction List</h2>
+ 
+    <vaadin-grid id="grid" aria-label="Basic Binding Example" items="[[data.data.result]]" page-size="10">
+
+      <vaadin-grid-column width="60px">
+        <template>
+          <div style="display: flex">
+            <button on-click="_showTxInfo">ShowTxInfo</button>
+          </div>
+        </template>
+      </vaadin-grid-column>
+
+      <vaadin-grid-column width="70px" flex-grow="0">
+        <template class="header">address</template>
+        <template>
+          <input value="[[item.address]]" readonly>
+        </template>        
+      </vaadin-grid-column>
+
+      <vaadin-grid-column width="70px" flex-grow="0">
+        <template class="header">account</template>
+        <template>
+          <input value="[[item.account]]" readonly>
+        </template>        
+      </vaadin-grid-column>
+
+      <vaadin-grid-column width="240px">        
+        <template class="header">txid</template>
+        <template>
+          <input value="[[item.txid]]" readonly>
+        </template>        
+      </vaadin-grid-column>
+
+      <vaadin-grid-column width="70px">
+        <template class="header">category</template>
+        <template>
+          <input value="[[item.category]]" readonly>
+        </template>        
+      </vaadin-grid-column>
+
+      <vaadin-grid-column width="70px">
+        <template class="header">Amount</template>
+        <template>
+          <input value="[[item.amount]]" readonly>
+        </template>        
+      </vaadin-grid-column>      
+      
+      <vaadin-grid-column width="70px">
+        <template class="header">Label</template>
+        <template>
+          <input value="[[item.label]]" readonly>
+        </template>
+      </vaadin-grid-column>
+      
+      <vaadin-grid-column width="50px">
+        <template class="header">Time</template>
+        <template> [[item.time]] </template>
+      </vaadin-grid-column>      
+    </vaadin-grid>      
+    <div id="pages">
+      <button on-tap="_prev">&lt;</button>
+      <template is="dom-repeat" items="[[pages]]">
+        <button on-tap="_select" selected$="[[_isSelected(page, item)]]">[[item]]</button>
+      </template>
+      <button on-tap="_next">&gt;</button>
+    </div>
+
+    <my-transaction-dlog id="transDlog" txid="[[seltxid]]" modal></my-transaction-dlog>
+  </template>
+
+  <script>
+    class MyView1 extends Polymer.Element {
+      static get is() { return 'my-view1'; }
+
+      static get properties() {
+        return {                    
+          seltxid: String,
+
+          curpagenum: {
+            type: Number,
+            value: 0,
+            observer: '_pagenumChanged'
+          },
+          curpages: Array,
+          page: Number,
+          pages: Array
+        }
+      }
+
+      static get observers() { return [
+        '_itemsChanged(data.data.result, page)'
+      ]}
+
+
+      ready() {
+        super.ready();
+
+        this.page = 0;        
+      }
+
+      _isSelected(page, item) {
+        return page === item - 1;
+      }
+
+      _select(e) {
+        this.page = e.model.item - 1;
+      }
+
+      _next() {
+        this.page = Math.min(this.pages.length - 1, this.page + 1);
+        if(this.page%10==0){          
+          this.curpagenum += 1;
+        }
+      }
+
+      _prev() {
+        this.page = Math.max(0, this.page - 1);
+        if(this.curpagenum>0 && this.page%10==9){
+          this.curpagenum -= 1;
+        }
+      }      
+
+      _itemsChanged(items, page) {
+        if (items === undefined || page === undefined) {
+          return;
+        }
+
+        if (!this.pages) {
+          this.pages = Array.apply( null, {length: Math.ceil(items.length / this.$.grid.pageSize)} ).map(function(item, index) {
+            return index + 1;
+          });
+
+          this._showLimitPages(this.pages);
+        }
+
+        var start = page * this.$.grid.pageSize;
+        var end = (page + 1) * this.$.grid.pageSize;
+        this.$.grid.items = items.slice(start, end);
+      }
+
+      _pagenumChanged(newVal, oldVal) { 
+        if(this.pages){          
+          this._showLimitPages(this.pages);
+        }                       
+      }
+
+      _showLimitPages(pages) {
+        var arrpage = [];
+        if(pages.length>10){
+          var startIdx = this.curpagenum*10;
+          var endIdx = this.curpagenum*10 + 10;
+          console.log(startIdx+"/"+endIdx);
+          for(var i=startIdx; i<endIdx; i++) {
+            arrpage.push(pages[i]);
+          }          
+          this.curpages = arrpage;
+          this.notifyPath('curpages');
+        } else {
+          this.curpages = pages;
+          this.notifyPath('curpages');          
+        }
+      }
+
+      _shortenDate(utime) {
+        if(utime){
+          var localDate = new Date(utime);
+          return localDate.toLocaleDateString() + " "+localDate.toLocaleTimeString();     
+        } else {
+          return "";
+        }        
+      }
+
+      _showTxInfo(e) {
+        this.seltxid = e.model.item.txid;
+        var body = document.querySelector('body');
+        Polymer.dom(body).appendChild(this.$.transDlog);             
+        this.$.transDlog.open();
+      }
+    }
+
+    window.customElements.define(MyView1.is, MyView1);
+  </script>
+</dom-module>

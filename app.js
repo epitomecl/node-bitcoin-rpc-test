@@ -7,6 +7,8 @@ app.use(bodyParser.json())
 
 app.use((err, req, res, next) => next());
 
+app.use('/web', express.static(__dirname + '/client'));
+
 const key = JSON.parse(fs.readFileSync('./.key', 'utf8'));
 require('./rpc')(app, key);
 
