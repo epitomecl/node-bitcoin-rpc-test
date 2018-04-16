@@ -30,6 +30,6 @@ app.get('/web/*', (req, res) => {
 const key = JSON.parse(fs.readFileSync('./.key', 'utf8'));
 require('./rpc')(app, key);
 
-app.listen(5000, () => {
-	console.log('Express server listening on port 5000');
+app.listen(4000, () => {
+	console.log('Express server listening on port 4000');
 });
