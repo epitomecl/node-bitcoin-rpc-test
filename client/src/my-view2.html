@@ -10,6 +10,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="my-view2">
@@ -24,9 +26,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .balance {
         font-weight: 600;
       }
+
+      .btnWrapper {
+        @apply --layout-horizontal;
+      }
     </style>
 
     <iron-ajax id="ajaxCall" auto url="/getwalletinfo" handle-as="json" last-response="{{data}}"></iron-ajax>
+
+    <div class="btnWrapper">
+      <paper-input id="piMsg" label="backup_wallet_name"></paper-input>
+      <paper-button on-tap="backupWallet" raised>Backup Wallet</paper-button>
+    </div>
+
+    <div class="btnWrapper">
+      <paper-input id="piMsg2" label="import_wallet_name"></paper-input>
+      <paper-button on-tap="importWallet" raised>Import Wallet</paper-button>
+    </div>
 
     <div class="card">      
       <h2>Wallet info</h2>
@@ -65,6 +81,60 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script>
     class MyView2 extends Polymer.Element {
       static get is() { return 'my-view2'; }
+
+
+      backupWallet() {
+        const name = this.$.piMsg.value;
+        console.log(name);
+        if(name!=null && name!=""){          
+          const formData = {backup: name};
+          const that = this;
+          $.ajax({
+            url: "/backupWallet",          
+            data: formData,
+            type: 'POST',            
+            success: function(result) {
+
+              if(result.flag==1){                
+                alert("Successfully complete to backup wallet");
+                location.reload();
+              } else {
+                alert("Something's wrong");
+              }                            
+            },
+            error: function(req, status, err){
+              console.error(err);
+            }
+          });
+        }     
+      }
+
+      importWallet() {
+        const name = this.$.piMsg2.value;
+        if(name!=null && name!=""){          
+          const formData = {backup: name};
+          const that = this;
+          $.ajax({
+            url: "/importWallet",       
+            data: formData,
+            type: 'POST',            
+            success: function(result) {
+
+              if(result.flag==1){                
+                alert("Successfully complete to import wallet");
+                location.reload();             
+              } else {
+                alert("Something's wrong");
+              }                            
+            },
+            error: function(req, status, err){
+              console.error(err);
+            }
+          });
+        }     
+      }
+
+
     }
 
     window.customElements.define(MyView2.is, MyView2);
