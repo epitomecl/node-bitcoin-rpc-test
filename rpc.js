@@ -11,6 +11,7 @@ module.exports = function(app, key) {
 	};
 
 	function rpcCall(method, ...arg) {		
+		console.log(arg);
 		return new Promise((resolve, reject) => {
 			const client = new RpcClient(config);
 			client.call({
@@ -110,6 +111,54 @@ module.exports = function(app, key) {
 
 		rpcCall('gettransaction', txid).then((result) => {
 			res.json({"flag": 1, "data": result});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+
+	app.post('/walletpassphrase', (req, res) => {
+		const passphrase = req.body.passphrase;
+		const timeout = req.body.timeout;
+
+		if(!passphrase || !timeout) {
+			res.json({"flag": 0});
+			return;
+		}		
+
+		rpcCall('walletpassphrase', passphrase, parseInt(timeout)).then((result) => {
+			res.json({"flag": 1});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.post('/backupwallet', (req, res) => {
+		const backup_name = req.body.backup;
+		if(!backup_name){
+			res.json({"flag": 0});
+			return;
+		}
+
+		rpcCall('backupwallet', backup_name).then((result) => {
+			res.json({"flag": 1});
+		}).catch((err) => {
+			console.error(err);
+			res.json({"flag": 0});
+		});
+	});
+
+	app.post('/importwallet', (req, res) => {
+		const backup_name = req.body.backup;
+		if(!backup_name){
+			res.json({"flag": 0});
+			return;
+		}
+
+		rpcCall('importwallet', backup_name).then((result) => {
+			res.json({"flag": 1});
 		}).catch((err) => {
 			console.error(err);
 			res.json({"flag": 0});
